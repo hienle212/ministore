@@ -1,0 +1,145 @@
+<html ng-app='orderApp'>
+<head>
+	<title>Orders | Store</title>
+	<link rel="stylesheet" type="text/css" href="/stylesheets/style.css">
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+	<script type="text/javascript" src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js'></script>
+	<script type="text/javascript" src='https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-route.min.js'></script>
+<script type="text/javascript">
+var orderApp = angular.module('orderApp', ['ngRoute']);
+orderApp.config(function($routeProvider){
+	$routeProvider
+		.when('/',
+		{
+			templateUrl: 'partials/customers_view.html'
+		})
+		.when('/orders',
+		{
+			templateUrl: 'partials/orders_view.html'
+		})
+});
+orderApp.factory('CustomerFactory', function(){
+	var customers = [
+						{name: 'Peter Svetlichny', created_at: new Date(1990, 2, 29).getTime()},
+						{name: 'Paul Newman', created_at: new Date(1925, 0, 26).getTime()},
+						{name: 'Gary Oldman', created_at: new Date(1958, 2, 21).getTime()}
+					];
+
+	var factory = {};
+	factory.getCustomers = function(){
+		return customers;
+	}
+	
+	var errors = false;
+	
+	factory.addNewCustomer = function(info){
+		var inArray = false;
+		for (var x in customers){
+			if (angular.lowercase(customers[x].name) == angular.lowercase(info.name)){
+				inArray = true;
+				errors = true;
+			}
+		}
+		if (inArray === false && info.name !== ''){
+			customers.push({
+				name: info.name,
+				created_at: new Date().getTime()
+			});
+			errors = false;
+		}
+	}
+
+	factory.showErrors = function(){
+		return errors;
+	}
+
+	factory.removeCustomer = function($index){
+		customers.splice($index, 1);
+	}
+
+	return factory;
+});
+orderApp.factory('OrderFactory', function(){
+	var orders = [
+					{customer: 'Peter Svetlichny', product_name: 'Nike Shoes', quantity: 2, date: new Date(1990, 2, 29).getTime()},
+					{customer: 'Paul Newman', product_name: 'Black Belt', quantity: 7, date: new Date(1925, 0, 26).getTime()},
+				 ];
+
+	var factory = {};
+	factory.getOrders = function(){
+		return orders;
+	}
+	
+	var errors = false;
+	
+	factory.addNewOrder = function(info){
+		if (info == undefined ||
+			info.customer === undefined ||
+			info.product_name === undefined ||
+			info.quantity === undefined)
+		{
+			errors = true;
+		}
+		else
+		{
+			orders.push({
+							customer: info.customer,
+							product_name: info.product_name,
+							quantity: info.quantity,
+							date: new Date().getTime()
+						});
+			errors = false;
+		}		
+	}
+
+	factory.showErrors = function(){
+		return errors;
+	}
+
+	return factory;
+});
+orderApp.controller('CustomerController', function($scope, CustomerFactory){
+	$scope.customers = CustomerFactory.getCustomers();
+
+	$scope.errors = function(){
+		return CustomerFactory.showErrors();
+	};
+
+	$scope.addCustomer = function(){
+		CustomerFactory.addNewCustomer($scope.new_customer);
+		$scope.new_customer = '';		
+	}
+
+	$scope.removeCustomer = function($index){
+		CustomerFactory.removeCustomer($index);
+	}
+});
+orderApp.controller('OrderController', function($scope, OrderFactory, CustomerFactory){
+	$scope.orders = OrderFactory.getOrders();
+	$scope.customers = CustomerFactory.getCustomers();
+
+	$scope.errors = function(){
+		return OrderFactory.showErrors();
+	};
+
+	$scope.addOrder = function(){
+		OrderFactory.addNewOrder($scope.new_order);
+		$scope.new_order = '';		
+	}
+
+});
+
+
+
+</script>
+</head>
+<body>
+	<div class='container'>
+
+		<div ng-view=''>
+		</div>
+
+	</div>
+</body>
+</html>
